@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/register.css">
+    <title>Inscription | NAME</title>
+    <script>
+        function toggleForm() {
+            const role = document.getElementById("role").value;
+            const djFields = document.getElementById("dj-fields");
+            const djInputs = djFields.querySelectorAll("input, select");
+        
+            if (role === "dj") {
+                djFields.style.display = "block";
+                djInputs.forEach(input => input.setAttribute("required", "required"));
+            } else {
+                djFields.style.display = "none";
+                djInputs.forEach(input => input.removeAttribute("required"));
+            }
+        }
+        
+        // Sélectionne "Un Organisateur" par défaut et ajuste les champs
+        window.onload = function () {
+            document.getElementById("role").value = "user";
+            toggleForm();
+        };
+        
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Créer un compte</h2>
+        <form action="/register" method="POST">
+            <label for="role">Vous êtes :</label>
+            <select name="role" id="role" onchange="toggleForm()">
+                <option value="user" >Un Organisateur</option>
+                <option value="dj">Un DJ</option>
+            </select><br>
+            <fieldset>
+                <legend>Général</legend>
+                <input type="text" name="username" placeholder="Nom d'utilisateur" required><br>
+                <input type="password" name="password" placeholder="Mot de passe" required><br>
+                <input type="password" name="confirm_password" placeholder="Confirmez le mot de passe" required><br>
+                <input type="email" name="email" placeholder="Email (contact)" required><br>
+            </fieldset>
+
+            <div id="dj-fields" style="display: none;">
+
+
+                <fieldset>
+                    <legend>Déplacements</legend>
+                    <input type="text" name="residance" placeholder="lieu de résidance" required><br>
+                    <input type="number" name="km" placeholder="Nombre de KM max" min="2"><br>
+                    
+                </fieldset>
+                <fieldset>
+                    <legend>Préstation</legend>
+                    <input type="number" name="tarif" id="tarif" placeholder="Tarif">
+                </fieldset>
+                <fieldset>
+                    <legend>Musique</legend>
+                    <input type="number" name="experience" placeholder="Années d'expérience" min="0"><br>
+                    <input type="text" name="style" placeholder="Style de musique" required><br>
+                    <select name="pro" id="pro">
+                        <option value="pro">Professionnel</option>
+                        <option value="amateur">Amateur</option>
+                    </select>
+                </fieldset>
+            </div>
+
+            <button type="submit">S'inscrire</button>
+        </form>
+    </div>
+</body>
+</html>

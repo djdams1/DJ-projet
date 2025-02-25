@@ -1,0 +1,114 @@
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #121212;
+    color: white;
+    text-align: center;
+}
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #1e1e1e;
+}
+header img {
+    width: 100px;
+}
+header ul {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+header ul li {
+    margin: 0 15px;
+}
+header ul li a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    transition: 0.3s;
+}
+header ul li a:hover {
+    color: #9800c7;
+    transition: 0.3s;
+}
+header img {
+    width: 80px;
+}
+.banner {
+    background-image: url('https://cdn.pixabay.com/photo/2021/10/06/20/45/nightclub-6686682_960_720.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #121212;
+}
+
+.text-banner{
+    margin:30px auto 30px auto ;
+    width: 70%;
+
+}
+.start-btn {
+
+    background: linear-gradient(45deg, #c70039, #ff5733);
+    color: white;
+    padding: 12px;
+    border: none;
+    width: 100%;
+    font-size: 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin: 30px;
+    text-decoration: none;
+}
+.start-btn:hover{
+    transform: translateY(-2px);
+    box-shadow: 0px 4px 10px rgba(255, 87, 51, 0.4);
+}
+
+.images-section {
+    margin: 40px 0;
+}
+.images-section img {
+    width: 30%;
+    margin: 10px;
+    border-radius: 10px;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    
+}
+.images-section img:hover {
+    transform: scale(1.1);
+    box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.5);
+}
+footer {
+    background-color: #1e1e1e;
+    padding: 20px;
+    margin-top: 40px;
+    display: flex;
+    justify-content: space-around;
+}
+footer p{
+    align-items: center;
+    margin: auto 0 auto 0;
+}
+footer ul {
+    text-decoration: none;
+    padding: 0;
+    list-style: none;
+}
+footer ul li {
+    margin: 10px 0 0 0;
+    text-decoration: none;
+}
+footer ul li a {
+    color: white;
+    text-decoration: none;
+}

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/organisateur.css">
+    <title>Organisation | NAME</title>
+</head>
+
+<body>
+    <div id="loading" class="loading-container">
+        <img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDU1YXhpbXBmZHd0dXVpMDZyZ3NpcngydW9yMTJlcWFpeXZ5YjdsMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/cPa0VPT5ZR8d6s9UGU/giphy.gif" alt="Chargement...">
+        <p>🎧 Recherche du meilleurs DJ pour ta soirée 🎶</p>
+    </div>
+    <div class="container">
+        <h2>Rechercher un DJ</h2>
+        <form id="filter-form">
+            <label for="event-date">Date de l'événement :</label>
+            <input type="date" id="event-date" name="event-date" required><br>
+
+            <label for="location">Lieu de l'événement :</label>
+            <input type="text" id="location" name="location" required><br>
+
+            <label for="type">Type de DJ :</label>
+            <select id="type" name="type">
+                <option value="pro">Professionnel</option>
+                <option value="amateur">Amateur</option>
+            </select><br>
+
+            <label for="budget">Budget maximum (€) :</label>
+            <input type="number" id="budget" name="budget" min="0" required><br>
+            <button type="submit">Rechercher</button>
+        </form>
+
+        <div id="results">
+            <fieldset>
+                <legend>Résultats</legend>
+                <ul id="dj-list"></ul>
+            </fieldset>
+        </div>
+    </div>
+
+</body>
+<script>
+    document.getElementById("filter-form").addEventListener("submit", async function(event) {
+        event.preventDefault();
+    
+        const container = document.querySelector(".container");
+        const loadingScreen = document.getElementById("loading");
+    
+        container.style.display = "none";
+        loadingScreen.style.display = "flex";
+    
+        try {
+            const formData = new FormData(event.target);
+            const type = formData.get("type");
+            const location = formData.get("location");
+            const budget = parseFloat(formData.get("budget"));
+    
+            if (!location) {
+                alert("Veuillez entrer une ville.");
+                return;
+            }
+    
+            const userCoords = await getCoordinates(location);
+            if (!userCoords) {
+                alert("Ville introuvable, essayez une autre.");
+                return;
+            }
+    
+            const response = await fetch(`/search-djs`);
+            const djs = await response.json();
+    
+            const djCoordsPromises = djs.map(async (dj) => {
+                const coords = await getCoordinates(dj.residence);
+                return { ...dj, coords };
+            });
+    
+            const djsWithCoords = (await Promise.all(djCoordsPromises)).filter(dj => dj.coords);
+            const filteredDjs = djsWithCoords.filter(dj => {
+                if (type && dj.type !== type) return false;
+                if (dj.tarif > budget) return false;
+                const distance = haversineDistance(userCoords, dj.coords);
+                return distance <= dj.kmMax;
+            });
+    
+            const djList = document.getElementById("dj-list");
+            djList.innerHTML = "";
+    
+            if (filteredDjs.length > 0) {
+                filteredDjs.forEach(dj => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                        <strong>${dj.name}</strong> <br>
+                        🏆 ${dj.type.toUpperCase()} <br>
+                        🎵 Style : ${dj.style} <br>
+                        📍 Lieu : ${dj.residence} (${dj.kmMax} km max) <br>
+                        🎧 Expérience : ${dj.experience} ans <br>
+                        💰 Tarif : ${dj.tarif} € <br>
+                        📧 <a href="mailto:${dj.email}">${dj.email}</a> 
+                    `;
+                    djList.appendChild(li);
+                });
+            } else {
+                djList.innerHTML = "<li>Aucun DJ trouvé.</li>";
+            }
+        } catch (error) {
+            console.error("Erreur lors de la recherche :", error);
+            alert("Une erreur est survenue. Veuillez réessayer.");
+        } finally {
+            container.style.display = "block";
+            loadingScreen.style.display = "none";
+        }
+    });
+    
+    async function getCoordinates(city) {
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${city}&format=json&limit=1`);
+            const data = await response.json();
+            if (data.length === 0) return null;
+    
+            return {
+                lat: parseFloat(data[0].lat),
+                lon: parseFloat(data[0].lon)
+            };
+        } catch (error) {
+            console.error("Erreur lors de la récupération des coordonnées :", error);
+            return null;
+        }
+    }
+    
+    function haversineDistance(coord1, coord2) {
+        const R = 6371;
+        const dLat = (coord2.lat - coord1.lat) * Math.PI / 180;
+        const dLon = (coord2.lon - coord1.lon) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(coord1.lat * Math.PI / 180) * Math.cos(coord2.lat * Math.PI / 180) * 
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+</script>
+</html>
