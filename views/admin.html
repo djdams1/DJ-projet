@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panneau Admin</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        table { width: 80%; margin: auto; border-collapse: collapse; }
+        th, td { border: 1px solid black; padding: 10px; }
+        button { background-color: red; color: white; padding: 5px; border: none; cursor: pointer; }
+        button:hover { background-color: darkred; }
+    </style>
+</head>
+<body>
+    <h1>🛠️ Panneau Admin</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Nom</th><th>Rôle</th><th>Email</th><th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="usersTable"></tbody>
+    </table>
+
+    <script>
+        async function loadUsers() {
+            const res = await fetch("/search-djs");
+            const users = await res.json();
+            const table = document.getElementById("usersTable");
+
+            users.forEach(user => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${user.name}</td>
+                    <td>${user.type}</td>
+                    <td>${user.email}</td>
+                    <td><button onclick="banUser('${user.name}')">🚫 Bannir</button></td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        async function banUser(username) {
+            const res = await fetch("/ban-user", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username })
+            });
+            alert(await res.text());
+            location.reload();
+        }
+
+        loadUsers();
+    </script>
+</body>
+</html>

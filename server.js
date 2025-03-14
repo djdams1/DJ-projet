@@ -8,7 +8,9 @@ const axios = require("axios");
 const app = express();
 const PORT = 3000;
 const USERS_FILE = "users.csv";
+const ADMIN_FILE = "admins.csv";
 app.use(express.json());
+
 
 
 // Middleware
@@ -192,6 +194,92 @@ app.get("/search-djs", async (req, res) => {
       });
 });
 
+// 🚀 Page de connexion admin
+app.get("/admin/login", (req, res) => res.sendFile(__dirname + "/views/admin_login.html"));
+
+// 🚀 Connexion admin
+app.post("/admin/login", (req, res) => {
+    const { username, password } = req.body;
+    let found = false;
+
+    fs.createReadStream(ADMIN_FILE)
+        .pipe(csv.parse({ headers: false }))
+        .on("data", (row) => {
+            if (row[0] === username) { // Admin trouvé
+                found = true;
+                bcrypt.compare(password, row[1], (err, result) => {
+                    if (result) {
+                        req.session.user = { username: row[0], role: "Admin" };
+                        return res.redirect("/admin"); // ✅ Accès admin validé
+                    } else {
+                        return res.send("❌ Mot de passe incorrect.");
+                    }
+                });
+            }
+        })
+        .on("end", () => {
+            if (!found) res.send("❌ Accès refusé.");
+        });
+});
+
+// 🚀 Panneau Admin
+app.get("/admin", (req, res) => {
+    if (!req.session.user || req.session.user.role !== "Admin") return res.redirect("/admin/login");
+
+    fs.readFile(USERS_FILE, "utf8", (err, data) => {
+        if (err) return res.send("❌ Erreur de lecture.");
+
+        const users = data.trim().split("\n").map(line => line.split(","));
+        let tableRows = users.map(user => `
+          <tr>
+            <td>${user[0]}</td> <td>${user[2]}</td> <td>${user[3]}</td>
+            <td><button onclick="banUser('${user[0]}')">🚫 Bannir</button></td>
+          </tr>
+        `).join("");
+
+        res.send(`
+          <h1>🛠️ Panneau Admin</h1>
+          <table border="1">
+            <tr><th>Nom</th><th>Rôle</th><th>Email</th><th>Action</th></tr>
+            ${tableRows}
+          </table>
+          <script>
+            function banUser(username) {
+              fetch('/ban-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) })
+              .then(res => res.text()).then(alert);
+            }
+          </script>
+        `);
+    });
+});
+
+// 🚀 Route pour bannir un utilisateur
+app.post("/ban-user", (req, res) => {
+    if (!req.session.user || req.session.user.role !== "Admin") return res.status(403).send("❌ Accès refusé.");
+
+    const { username } = req.body;
+    let users = [];
+
+    fs.createReadStream(USERS_FILE)
+        .pipe(csv.parse({ headers: false }))
+        .on("data", (row) => {
+            if (row[0] !== username) users.push(row);
+        })
+        .on("end", () => {
+            const writableStream = fs.createWriteStream(USERS_FILE);
+            const csvStream = csv.format({ headers: false });
+            csvStream.pipe(writableStream);
+            users.forEach(user => csvStream.write(user));
+            csvStream.end();
+
+            res.send(`✅ L'utilisateur ${username} a été banni.`);
+        });
+});
+
+// 🚀 Déconnexion admin
+app.get("/admin/logout", (req, res) => {
+  req.session.destroy(() => res.redirect("/admin/login"));
+});
 
 
 // 🚀 Route pour la déconnexion
